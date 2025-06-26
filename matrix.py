@@ -19,38 +19,38 @@ class Matrix:
         '''
         if(type(matrix) == str and len(matrix) > 0):
             # e.g. '[[1, 2, 3], [4, 5, 6], [7, 8, 9]]'
-            self.m = []
+            self._m = []
             rows = matrix.split('], [')
             rows[0] = rows[0][2:]
             rows[-1] = rows[-1][:-2]
             for i in range(len(rows)):
-                self.m.append([])
+                self._m.append([])
                 values = rows[i].split(', ')
                 for j in range(len(values)):
                     while(']' in values[j]):
                         values[j] = values[j][:-1]
                     while('[' in values[j]):
                         values[j] = values[j][1:]
-                    self.m[i].append(float(values[j]))
+                    self._m[i].append(float(values[j]))
+                if(self.is_jagged):
+                    raise errors.JaggedMatrixError("Given a jagged matrix")
         else:
-            self.m = [[]]
+            self._m = [[]]
         self.verbose = verbose
         self.ecl = 0
         self.ecd = 4
-        if(self.verbose):
-            print("Initialized new blank matrix")
 
     # The following three magic methods allow the user to interact with the object as if it is the list itself
-    # e.g. matrix[0][0] returns the same result as matrix.m[0][0], matrix[3][4] = 2.0 assigns 2.0 to matrix.m[3][4]
+    # e.g. matrix[0][0] returns the same result as matrix._m[0][0], matrix[3][4] = 2.0 assigns 2.0 to matrix._m[3][4]
 
     def __getitem__(self, index: int) -> list:
-        return self.m[index]
+        return self._m[index]
 
     def __setitem__(self, index: int, value: list) -> None:
-        self.m[index] = value
+        self._m[index] = value
         
     def __len__(self) -> int:
-        return len(self.m)
+        return len(self._m)
 
     def __str__(self) -> str: 
         '''Converts the matrix to a legible multi-line string representation.'''
@@ -166,7 +166,7 @@ class Matrix:
                         result_num += self[0][i] * other[i][0]
                     # returns 1x1 matrix instead of float to follow convention
                     result = Matrix()
-                    result.m = [[result_num]]
+                    result._m = [[result_num]]
                     return result
                 # matrix mult case
                 else:
@@ -226,7 +226,7 @@ class Matrix:
     def __eq__(self, other: 'Matrix | int | float') -> bool:
         '''Determines equivalency based on the contents of each matrix. Also supports comparing literal numbers (i.e. scalars) and 1x1 matrices.'''
         if(type(other) == Matrix):
-            return self.m == other.m
+            return self._m == other._m
         elif((type(other) == float or type(other) == int) and len(self) == len(self[0]) == 1):
             return self[0][0] == other
         else:
@@ -264,7 +264,7 @@ class Matrix:
 
     def import_string(self, matrix: str) -> None:
         '''
-        Parses user input to create the self.m matrix.
+        Parses user input to create the self._m matrix.
         Accepts MATLAB notation, e.g. [1 2 3; 4.0 -5 6.7; 7 8 9]
         '''
         if(matrix[0] != '['):
@@ -295,20 +295,20 @@ class Matrix:
         if(type(matrix) != list or (len(matrix) > 0 and type(matrix[0] != list))):
             raise TypeError("Given something other than a 2D matrix for set()")
         test_matrix = Matrix()
-        test_matrix.m = matrix
+        test_matrix._m = matrix
         if(test_matrix.is_jagged):
             raise errors.JaggedMatrixError("Given a jagged matrix")
         else:
-            self.m = matrix
+            self._m = matrix
 
     def zeroes(self, rows: int, cols: int = -1) -> 'Matrix':
         '''Creates a matrix of zeroes with the specified dimensions. If only one number is provided, a square matrix is created.'''
         if(cols < 0): # square case
             cols = rows
         matrix = Matrix()
-        matrix.m = []
+        matrix._m = []
         for i in range(rows):
-            matrix.m.append([0.0] * cols)
+            matrix._m.append([0.0] * cols)
         return matrix
     
     def ones(self, rows: int, cols: int = -1) -> 'Matrix':
@@ -316,9 +316,9 @@ class Matrix:
         if(cols < 0):
             cols = rows
         matrix = Matrix()
-        matrix.m = []
+        matrix._m = []
         for i in range(rows):
-            matrix.m.append([1.0] * cols)
+            matrix._m.append([1.0] * cols)
         return matrix
 
     def identity(self, rows: int, cols: int = -1) -> 'Matrix':
@@ -367,9 +367,9 @@ class Matrix:
         '''
         if(col < len(self[0])):
             result = Matrix()
-            result.m = []
+            result._m = []
             for i in range(len(self)):
-                result.m.append([self[i][col]])
+                result._m.append([self[i][col]])
             return result
         else:
             raise errors.ColumnOutOfBoundsError(f"Column {col} is not in the given matrix")
@@ -379,9 +379,9 @@ class Matrix:
         Slices a matrix to include only a given row/column range. Follows python syntax.
         To include all rows or columns, make that argument either ':' or ''.\n
         Example:\n
-        m.m = [[1,2,3],[4,5,6],[7,8,9]];
+        m._m = [[1,2,3],[4,5,6],[7,8,9]];
         n = m.slice('0:2','2:');
-        n.m -> [[3],[6]]
+        n._m -> [[3],[6]]
         '''
         (row_start, row_end) = self._slice_parse(rows, False)
         (col_start, col_end) = self._slice_parse(cols, True)
@@ -407,9 +407,9 @@ class Matrix:
     def duplicate(self) -> 'Matrix':
         '''Returns a Matrix object with identical data (no shared memory addresses).'''
         new = Matrix()
-        new.m = []
+        new._m = []
         for i in range(len(self)):
-            new.m.append(self[i][:])
+            new._m.append(self[i][:])
         new.verbose = self.verbose
         new.ecl = self.ecl
         new.ecd = self.ecd
@@ -527,9 +527,9 @@ class Matrix:
         end (int): exclusive starting index (0 <= end <= len(self))
         '''
         result = self.zeroes(end - start, len(self[0]))
-        result.m = []
+        result._m = []
         while(start < end):
-            result.m.append(self[start])
+            result._m.append(self[start])
             start += 1
         return result
 
@@ -537,9 +537,9 @@ class Matrix:
         '''See _slice_rows.'''
         end
         result = self.zeroes(len(self), end - start)
-        result.m = []
+        result._m = []
         for i in range(len(self)):
-            result.m.append(self[i][start:end])
+            result._m.append(self[i][start:end])
         return result
 
     def _slice_parse(self, txt: str, cols = False) -> tuple:
