@@ -14,3 +14,5 @@ class SliceError(Exception):
     pass
 class SingularMatrixError(Exception):
     pass
+class JaggedMatrixError(Exception):
+    pass

@@ -286,13 +286,20 @@ class Matrix:
                     else:
                         rows[i][j] = float(rows[i][j])
                     j += 1
-            self.m = rows
+            self.set(rows)
             if(self.verbose):
                 print("String successfully imported as:")
                 print(self)
 
     def set(self, matrix: list[list]):
-        self.m = matrix
+        if(type(matrix) != list or (len(matrix) > 0 and type(matrix[0] != list))):
+            raise TypeError("Given something other than a 2D matrix for set()")
+        test_matrix = Matrix()
+        test_matrix.m = matrix
+        if(test_matrix.is_jagged):
+            raise errors.JaggedMatrixError("Given a jagged matrix")
+        else:
+            self.m = matrix
 
     def zeroes(self, rows: int, cols: int = -1) -> 'Matrix':
         '''Creates a matrix of zeroes with the specified dimensions. If only one number is provided, a square matrix is created.'''
