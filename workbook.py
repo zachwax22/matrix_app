@@ -8,25 +8,27 @@ Allows Matrix and scalar objects to be grouped within a workspace, and allows wo
 
 class Workbook:
     def __init__(self, name: str = 'WB1'):
-        self.d = {}
+        self._d = {}
         self.name = name
     
     def __getitem__(self, key: str) -> Matrix | float | int:
-        return self.d[key]
+        return self._d[key]
     
     def __setitem__(self, key: str, value: Matrix | float | int):
         if(type(value) in (Matrix, float, int)):
-            self.d[key] = value
+            self._d[key] = value
+        else:
+            raise TypeError("attempted to add illegal type to workbook")
 
     def __delitem__(self, key: str):
-        del self.d[key]
+        del self._d[key]
 
     def __len__(self) -> int:
-        return len(self.d)
+        return len(self._d)
     
     def __str__(self) -> str:
         result = f"Workbook {self.name} containing {len(self)} items:"
-        for key, value in self.d.items():
+        for key, value in self._d.items():
             if(type(value) == Matrix):
                 result += f"\n{key}: {len(value)}x{len(value[0])} matrix"
             else:
@@ -38,12 +40,12 @@ class Workbook:
     def rawdata(self) -> str:
         '''Creates raw workbook data to be exported to file'''
         result = ''
-        for key, value in self.d.items():
+        for key, value in self._d.items():
             if(result != ''):
                 result += '\n'
             result += key
             if(type(value) == Matrix):
-                result += '|' + str(value.m)
+                result += '|' + str(value._m)
             elif(type(value) == float or type(value) == int):
                 result += '^' + str(value)
         return result
@@ -53,7 +55,7 @@ class Workbook:
         self[name] = matrix
 
     def remove(self, name: str) -> None:
-        del self.d[name]
+        del self._d[name]
 
     def wb_import(self, filepath: str) -> None:
         '''Imports workbook data from a file'''
