@@ -34,10 +34,8 @@ class Workbook:
             else:
                 result += f"\n{key}: {value} scalar"
         return result
-    
-    __repr__ = __str__
 
-    def rawdata(self) -> str:
+    def __repr__(self) -> str:
         '''Creates raw workbook data to be exported to file'''
         result = ''
         for key, value in self._d.items():
@@ -45,23 +43,24 @@ class Workbook:
                 result += '\n'
             result += key
             if(type(value) == Matrix):
-                result += '|' + str(value._m)
+                result += '|' + repr(value)
             elif(type(value) == float or type(value) == int):
                 result += '^' + str(value)
         return result
 
     
-    def add(self, name: str, matrix: Matrix | float | int) -> None:
-        self[name] = matrix
+    def add(self, name: str, value: Matrix | float | int) -> None:
+        if(type(value) in (Matrix, float, int)):
+            self._d[name] = value
+        else:
+            raise TypeError("attempted to add illegal type to workbook")
 
     def remove(self, name: str) -> None:
-        del self._d[name]
+        if(name in self._d):
+            del self._d[name]
 
-    def wb_import(self, filepath: str) -> None:
-        '''Imports workbook data from a file'''
-        file = open(filepath, 'r')
-        lines = file.readlines()
-        file.close()
+    def parse_lines(self, lines: list) -> None:
+        '''Parses data from file and imports to Workbook object. Arg received as a list of str lines.'''
         for i in range(len(lines)):
             if('|' in lines[i]):
                 (key, value) = lines[i].split('|')
@@ -70,8 +69,15 @@ class Workbook:
                 (key, value) = lines[i].split('^')
                 self[key] = float(value)
 
+    def wb_import(self, filepath: str) -> None:
+        '''Imports workbook data from a file'''
+        file = open(filepath, 'r')
+        lines = file.readlines()
+        file.close()
+        self.parse_lines(lines)
+
     def wb_export(self, filepath: str) -> str:
         '''Creates a file with the workbook data'''
         file = open(filepath, 'w')
-        file.write(self.rawdata())
+        file.write(repr(self))
         file.close()

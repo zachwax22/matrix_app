@@ -98,7 +98,8 @@ class Matrix:
 
         return result
 
-    __repr__ = __str__
+    def __repr__(self) -> str:
+        return str(self._m)
 
     def __add__(self, other: 'Matrix | float | int')-> 'Matrix':
         '''
@@ -291,8 +292,9 @@ class Matrix:
                 print("String successfully imported as:")
                 print(self)
 
-    def set(self, matrix: list[list]):
-        if(type(matrix) != list or (len(matrix) > 0 and type(matrix[0] != list))):
+    def set(self, matrix: list[list]) -> None:
+        '''Sets matrix object to a given value'''
+        if(type(matrix) != list or (len(matrix) > 0 and type(matrix[0]) != list)):
             raise TypeError("Given something other than a 2D matrix for set()")
         test_matrix = Matrix()
         test_matrix._m = matrix
