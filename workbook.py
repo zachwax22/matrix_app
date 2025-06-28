@@ -26,6 +26,15 @@ class Workbook:
     def __len__(self) -> int:
         return len(self._d)
     
+    def __eq__(self, other) -> bool:
+        if(type(other) != Workbook):
+            return False
+        if(self._d.keys() == other._d.keys()):
+            for key in self._d.keys():
+                if(self[key] != other[key]):
+                    return False
+            return True
+    
     def __str__(self) -> str:
         result = f"Workbook {self.name} containing {len(self)} items:"
         for key, value in self._d.items():
