@@ -104,7 +104,7 @@ class Matrix:
     def __repr__(self) -> str:
         return str(self._m)
 
-    def __add__(self, other: 'Matrix | float | int')-> 'Matrix':
+    def __add__(self, other: 'Matrix | float | int') -> 'Matrix':
         '''
         Performs addition for one of two cases:\n
         other is Matrix: adds each element individually if both matrices are of the same dimensions, returns None otherwise\n
@@ -149,7 +149,7 @@ class Matrix:
         else:
             raise TypeError("Subtraction error - incorrect type passed")
             
-    def __mul__(self, other: 'Matrix | float | int')-> 'Matrix':
+    def __mul__(self, other: 'Matrix | float | int') -> 'Matrix':
         '''
         Performs multiplication for one of two cases:\n
         other is Matrix: performs matrix multiplication (self must have as many columns as other has rows)\n
@@ -187,7 +187,15 @@ class Matrix:
                 raise errors.DimensionError("Multiplication error - incorrect dimensions used")
         else:
             raise TypeError("Multiplication error - wrong type used")
-            
+
+    def __rmul__(self, other: 'Matrix | float | int') -> 'Matrix': 
+        '''Used when self is on the right for multiplication (e.g. 5*m where type(m)==Matrix)'''
+        if(type(other) == float or type(other) == int):
+            return self * other
+        elif(type(other) == Matrix):
+            return other * self
+        else:
+            raise TypeError(f"Unsupported operand type: {type(other)} and Matrix")
                 
     def __pow__(self, power: int) -> 'Matrix':
         '''Matrix exponentiation for square matrices. All exponents must be ints due to complex numbers being unsupported.'''
