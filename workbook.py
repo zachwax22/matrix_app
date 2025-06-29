@@ -21,7 +21,8 @@ class Workbook:
             raise TypeError("attempted to add illegal type to workbook")
 
     def __delitem__(self, key: str):
-        del self._d[key]
+        if(key in self._d):
+            del self._d[key]
 
     def __len__(self) -> int:
         return len(self._d)
@@ -29,10 +30,7 @@ class Workbook:
     def __eq__(self, other) -> bool:
         if(type(other) != Workbook):
             return False
-        if(self._d.keys() == other._d.keys()):
-            for key in self._d.keys():
-                if(self[key] != other[key]):
-                    return False
+        if(set(repr(self).split('\n')) == set(repr(other).split('\n'))):
             return True
     
     def __str__(self) -> str:
@@ -67,8 +65,23 @@ class Workbook:
     def remove(self, name: str) -> None:
         if(name in self._d):
             del self._d[name]
+    
+    def clear(self) -> None:
+        '''Clears workbook of all data'''
+        self._d = {}
 
-    def parse_lines(self, lines: list) -> None:
+    def duplicate(self) -> 'Workbook':
+        '''Creates identical workbook object'''
+        new_wb = Workbook()
+        new_wb.name = self.name
+        for key, value in self._d.items():
+            if(type(value) == Matrix):
+                new_wb[key] = value.duplicate()
+            else: # must be literal - no dupe needed
+                new_wb[key] = value
+        return new_wb
+
+    def parse_lines(self, lines: list[str]) -> None:
         '''Parses data from file and imports to Workbook object. Arg received as a list of str lines.'''
         for i in range(len(lines)):
             if('|' in lines[i]):
