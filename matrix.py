@@ -1,6 +1,7 @@
 #type: ignore
 import errors
 import random
+from math import isclose
 
 '''
 Contains logic for the Matrix class.
@@ -34,6 +35,8 @@ class Matrix:
                     self._m[i].append(float(values[j]))
                 if(self.is_jagged):
                     raise errors.JaggedMatrixError("Given a jagged matrix")
+            if(self._m == []):
+                self._m = [[]]
         else:
             self._m = [[]]
         self.verbose = verbose
@@ -226,8 +229,14 @@ class Matrix:
 
     def __eq__(self, other: 'Matrix | int | float') -> bool:
         '''Determines equivalency based on the contents of each matrix. Also supports comparing literal numbers (i.e. scalars) and 1x1 matrices.'''
-        if(type(other) == Matrix):
-            return self._m == other._m
+        if(type(other) == Matrix and len(self) == len(other) and len(self[0]) == len(other[0])):
+            equal = self._m == other._m
+            if(not equal): # does an isclose() check as backup
+                for i in range(len(self)):
+                    for j in range(len(self[0])):
+                        if(not isclose(self[i][j], other[i][j])):
+                            return False
+            return True
         elif((type(other) == float or type(other) == int) and len(self) == len(self[0]) == 1):
             return self[0][0] == other
         else:
@@ -259,7 +268,7 @@ class Matrix:
     @property
     def is_square(self) -> bool:
         '''Determines if a matrix is square (e.g. 2x2, 3x3, etc)'''
-        return len(self) == len(self[0])
+        return len(self) == len(self[0]) or self._m == [[]]
 
     # Matrix generators ----------------
 
@@ -311,6 +320,8 @@ class Matrix:
         matrix._m = []
         for i in range(rows):
             matrix._m.append([0.0] * cols)
+        if(matrix._m == []):
+            matrix._m = [[]]
         return matrix
     
     def ones(self, rows: int, cols: int = -1) -> 'Matrix':
@@ -321,6 +332,8 @@ class Matrix:
         matrix._m = []
         for i in range(rows):
             matrix._m.append([1.0] * cols)
+        if(matrix._m == []):
+            matrix._m = [[]]
         return matrix
 
     def identity(self, rows: int, cols: int = -1) -> 'Matrix':
@@ -372,6 +385,8 @@ class Matrix:
             result._m = []
             for i in range(len(self)):
                 result._m.append([self[i][col]])
+            if(result._m == []):
+                result._m = [[]]
             return result
         else:
             raise errors.ColumnOutOfBoundsError(f"Column {col} is not in the given matrix")
@@ -412,6 +427,8 @@ class Matrix:
         new._m = []
         for i in range(len(self)):
             new._m.append(self[i][:])
+        if(new._m == []):
+            new._m = [[]]
         new.verbose = self.verbose
         new.ecl = self.ecl
         new.ecd = self.ecd
@@ -474,7 +491,7 @@ class Matrix:
         abort (bool): Aborts early and returns matrix if inconsistency is found (i.e. 0=1), False by default
         '''
         result = self.duplicate()
-        if(abort and not self.is_consistent):
+        if(abort and not result.is_consistent):
             return result
         # step 1 - get to echelon form (upper diagonal only)
         for i in range(len(result[0])):
@@ -491,7 +508,7 @@ class Matrix:
                     for j in range(i+1, len(result)):
                         if(result[j][i] != 0):
                             result._eliminate(j, i, result[j][i])
-                            if(abort and not self.is_consistent):
+                            if(abort and not result.is_consistent):
                                 return result
         # matrix is now upper triangular
         # the range() below looks weird but it just traverses the list backwards
@@ -500,7 +517,7 @@ class Matrix:
                 for j in range(i-1, -1, -1):
                     if(result[j][i] != 0):
                         result._eliminate(j, i, result[j][i])
-                        if(abort and not self.is_consistent):
+                        if(abort and not result.is_consistent):
                             return result
         if(result.ecl >= 1):
             result._round()
@@ -533,6 +550,8 @@ class Matrix:
         while(start < end):
             result._m.append(self[start])
             start += 1
+        if(result._m == []):
+            result._m = [[]]
         return result
 
     def _slice_columns(self, start: int, end: int):
@@ -542,6 +561,8 @@ class Matrix:
         result._m = []
         for i in range(len(self)):
             result._m.append(self[i][start:end])
+        if(result._m == []):
+            result._m = [[]]
         return result
 
     def _slice_parse(self, txt: str, cols = False) -> tuple:
