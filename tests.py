@@ -1,3 +1,4 @@
+#type: ignore
 from matrix import Matrix
 from workbook import Workbook
 import errors
@@ -15,6 +16,7 @@ class Test:
             self.pass_fail[1] += 1
 
     def matrix_test(self) -> None:
+        self.pass_fail = [0,0]
         generic = Matrix()
         generic.set([[1.0, 2.0, 3.0],[4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
 
@@ -106,4 +108,25 @@ class Test:
         temp = generic.concat(Matrix('[[6], [3], [1]]'))
         self.test('row_reduce inconsistent w/ abort', Matrix('[[1, 2, 3, 6], [0, 1, 2, 7], [0, 0, 0, 1]]'), temp.row_reduce(True))
         self.test('row_reduce inconsistent w/o abort', Matrix('[[1, 0, -1, -7], [0, 1, 2, 5], [0, 0, 0, 1]]'), temp.row_reduce())
+        print(f"{self.pass_fail[0]} tests passed, {self.pass_fail[1]} tests failed")
+
+    def workbook_test(self) -> None:
+        self.pass_fail = [0,0]
+        wb = Workbook()
+        wb.add('val1', 3.0)
+        wb['mat1'] = Matrix('[[1, 2], [3, 4]]')
+        temp = wb.duplicate()
+        wb['mat2'] = wb['mat1'] * wb['val1']
+        self.test('workbook basic function', Matrix('[[3, 6], [9, 12]]'), wb['mat2'])
+        new_wb = wb.duplicate()
+        del new_wb['mat3']
+        self.test('__delitem__ DNE', wb, new_wb)
+        new_wb.remove('mat2')
+        self.test('__eq__ and remove', temp, new_wb)
+        repr_example = 'val1^3.0\nmat1|[[1.0, 2.0], [3.0, 4.0]]'
+        self.test('repr', repr_example, repr(temp))
+        wb.clear()
+        repr_example_lst = repr_example.split('\n')
+        wb.parse_lines(repr_example_lst)
+        self.test('parse_lines', temp, wb)
         print(f"{self.pass_fail[0]} tests passed, {self.pass_fail[1]} tests failed")
