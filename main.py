@@ -2,8 +2,13 @@
 from matrix import Matrix
 from workbook import Workbook
 
-'''Contains the actual user shell'''
+''' Contains the actual user shell
+    NOTE: This section of the project is currently mothballed.
+    My next semester is about to start, the library works just fine with the interpreter, and I'd be spending a lot of time on something I have little use for.
+    '''
+
 def _is_variable(token: str) -> bool:
+    '''Determines whether a string token represents a valid variable name'''
     ALLOWED_SYMBOLS = ['-','_',"'"]
     if(' ' not in token):
         for i in range(len(token)):
@@ -14,9 +19,12 @@ def _is_variable(token: str) -> bool:
         return False
     
 def _is_operator(token: str) -> bool:
+    '''Determines whether a string token represents a valid operator'''
     OPERATORS = ['+', '-', '/', '*', '^', '%', '//', '=', '==', '+=', '-=', '*=', '/=', '^=', '%=', '//=']
     return token in OPERATORS
         
+def evaluate(tokens: list):
+    pass
     
 def main():
     wb1 = Workbook('WB1')
@@ -37,6 +45,15 @@ def main():
                 print(str(workbook[tokens[0]]))
             except KeyError:
                 print("Variable not found")
+        # assignment case
+        elif(len(tokens) > 3 and _is_variable(tokens[0]) and tokens[1] == '='):
+            output = tokens[0]
+            tokens = tokens[2:]
+        else: # evaluate rest of case, but print to stdout
+            output = 'STDOUT'
+        # further eval from here
+        # determine whether outer call is arithmetic or function, break down tokens further from there
+
         user_input = input(f'[{workbook.name}] ~$ ').strip()
 
 
